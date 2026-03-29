@@ -122,9 +122,21 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-black;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html {
-    @apply font-sans;
+    @apply font-sans scroll-smooth;
   }
+}
+
+/* Hide scrollbar for cleaner look */
+body::-webkit-scrollbar,
+main::-webkit-scrollbar {
+  display: none;
+}
+body, main {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
