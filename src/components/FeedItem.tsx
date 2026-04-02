@@ -7,12 +7,23 @@ import { VideoCard } from "./VideoCard";
 export function FeedItem({
   item,
   priority = false,
+  globalMuted = true,
+  onMuteToggle,
 }: {
   item: ContentItem;
   priority?: boolean;
+  globalMuted?: boolean;
+  onMuteToggle?: (muted: boolean) => void;
 }) {
   if (item.type === "video") {
-    return <VideoCard item={item} priority={priority} />;
+    return (
+      <VideoCard
+        item={item}
+        priority={priority}
+        globalMuted={globalMuted}
+        onMuteToggle={onMuteToggle}
+      />
+    );
   }
   return <QuoteCard item={item} />;
 }

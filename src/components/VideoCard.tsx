@@ -6,14 +6,25 @@ import { useEffect, useRef, useState } from "react";
 export function VideoCard({
   item,
   priority = false,
+  globalMuted = true,
+  onMuteToggle,
 }: {
   item: ContentItem;
   priority?: boolean;
+  globalMuted?: boolean;
+  onMuteToggle?: (muted: boolean) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(true); // start muted so autoplay works on mobile
+
+  // Sync muted state from parent whenever globalMuted changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = globalMuted;
+    }
+  }, [globalMuted]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -31,7 +42,7 @@ export function VideoCard({
           setIsPaused(false);
         }
       },
-      { threshold: 0.6 }
+      { threshold: 0.6 },
     );
 
     observer.observe(container);
@@ -52,10 +63,9 @@ export function VideoCard({
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = !video.muted;
-    setIsMuted(video.muted);
+    const newMuted = !globalMuted;
+    // Tell the parent so ALL videos get the new mute state
+    onMuteToggle?.(newMuted);
   };
 
   return (
@@ -77,7 +87,13 @@ export function VideoCard({
       {/* Pause overlay */}
       {isPaused && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="white" opacity={0.8}>
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="white"
+            opacity={0.8}
+          >
             <polygon points="6 3 20 12 6 21 6 3" />
           </svg>
         </div>
@@ -87,16 +103,34 @@ export function VideoCard({
       <button
         onClick={toggleMute}
         className="absolute bottom-24 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-colors active:bg-white/30"
-        aria-label={isMuted ? "Unmute" : "Mute"}
+        aria-label={globalMuted ? "Unmute" : "Mute"}
       >
-        {isMuted ? (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {globalMuted ? (
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             <line x1="23" y1="9" x2="17" y2="15" />
             <line x1="17" y1="9" x2="23" y2="15" />
           </svg>
         ) : (
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
             <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
@@ -105,9 +139,7 @@ export function VideoCard({
       </button>
 
       <div className="absolute bottom-24 left-6 flex flex-col gap-1">
-        <span className="text-sm font-medium text-white/90">
-          {item.source}
-        </span>
+        <span className="text-sm font-medium text-white/90">{item.source}</span>
       </div>
     </div>
   );

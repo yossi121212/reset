@@ -3,7 +3,7 @@
 import { FeedItem } from "@/components/FeedItem";
 import { BottomNav } from "@/components/BottomNav";
 import { feedVideos, feedQuotes } from "@/data/seed";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /** Fisher-Yates shuffle */
 function shuffle<T>(arr: T[]): T[] {
@@ -17,9 +17,14 @@ function shuffle<T>(arr: T[]): T[] {
 
 export default function FeedPage() {
   const [items, setItems] = useState([...feedVideos, ...feedQuotes]);
+  const [globalMuted, setGlobalMuted] = useState(true);
 
   useEffect(() => {
     setItems([...shuffle(feedVideos), ...shuffle(feedQuotes)]);
+  }, []);
+
+  const handleMuteToggle = useCallback((muted: boolean) => {
+    setGlobalMuted(muted);
   }, []);
 
   return (
@@ -40,7 +45,12 @@ export default function FeedPage() {
       <main className="h-[100dvh] snap-y snap-mandatory overflow-y-scroll">
         {items.map((item, i) => (
           <div key={item.id} className="h-[100dvh] snap-start">
-            <FeedItem item={item} priority={i === 0} />
+            <FeedItem
+              item={item}
+              priority={i === 0}
+              globalMuted={globalMuted}
+              onMuteToggle={handleMuteToggle}
+            />
           </div>
         ))}
       </main>
