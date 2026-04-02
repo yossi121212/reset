@@ -3,11 +3,17 @@
 import { ContentItem } from "@/data/seed";
 import { useEffect, useRef, useState } from "react";
 
-export function VideoCard({ item }: { item: ContentItem }) {
+export function VideoCard({
+  item,
+  priority = false,
+}: {
+  item: ContentItem;
+  priority?: boolean;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // start muted so autoplay works on mobile
 
   useEffect(() => {
     const video = videoRef.current;
@@ -61,9 +67,10 @@ export function VideoCard({ item }: { item: ContentItem }) {
       <video
         ref={videoRef}
         src={item.body}
+        muted
         loop
         playsInline
-        preload="metadata"
+        preload={priority ? "auto" : "metadata"}
         className="h-full w-full object-cover"
       />
 

@@ -38,9 +38,9 @@ export default function FeedPage() {
 
       {/* Full-screen snap scroll feed */}
       <main className="h-[100dvh] snap-y snap-mandatory overflow-y-scroll">
-        {items.map((item) => (
+        {items.map((item, i) => (
           <div key={item.id} className="h-[100dvh] snap-start">
-            <FeedItem item={item} />
+            <FeedItem item={item} priority={i === 0} />
           </div>
         ))}
       </main>
