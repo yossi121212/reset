@@ -2,9 +2,26 @@
 
 import { FeedItem } from "@/components/FeedItem";
 import { BottomNav } from "@/components/BottomNav";
-import { feedItems } from "@/data/seed";
+import { feedVideos, feedQuotes } from "@/data/seed";
+import { useEffect, useState } from "react";
+
+/** Fisher-Yates shuffle */
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export default function FeedPage() {
+  const [items, setItems] = useState([...feedVideos, ...feedQuotes]);
+
+  useEffect(() => {
+    setItems([...shuffle(feedVideos), ...shuffle(feedQuotes)]);
+  }, []);
+
   return (
     <div className="mx-auto max-w-md">
       {/* Header */}
@@ -21,7 +38,7 @@ export default function FeedPage() {
 
       {/* Full-screen snap scroll feed */}
       <main className="h-[100dvh] snap-y snap-mandatory overflow-y-scroll">
-        {feedItems.map((item) => (
+        {items.map((item) => (
           <div key={item.id} className="h-[100dvh] snap-start">
             <FeedItem item={item} />
           </div>

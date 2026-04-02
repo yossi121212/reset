@@ -29,6 +29,14 @@ export const seedData: ContentItem[] = [
     category: "motivational",
     section: "both",
   },
+  {
+    id: "53",
+    type: "video",
+    body: "/videos/roger-federer.mp4",
+    source: "Roger Federer — 20 Grand Slam legend",
+    category: "motivational",
+    section: "both",
+  },
 
   // ── Stoic Quotes ──────────────────────────────
   {
@@ -384,94 +392,19 @@ export const seedData: ContentItem[] = [
     section: "feed",
   },
 
-  // ── Videos (royalty-free placeholders) ─────────
-  {
-    id: "44",
-    type: "video",
-    body: "https://videos.pexels.com/video-files/3571264/3571264-uhd_2560_1440_30fps.mp4",
-    source: "Ocean Waves",
-    category: "motivational",
-    section: "both",
-  },
-  {
-    id: "45",
-    type: "video",
-    body: "https://videos.pexels.com/video-files/1409899/1409899-uhd_2560_1440_25fps.mp4",
-    source: "Mountain Sunrise",
-    category: "motivational",
-    section: "both",
-  },
-  {
-    id: "46",
-    type: "video",
-    body: "https://videos.pexels.com/video-files/2491284/2491284-uhd_2560_1440_24fps.mp4",
-    source: "Forest Path",
-    category: "motivational",
-    section: "both",
-  },
-  {
-    id: "47",
-    type: "video",
-    body: "https://videos.pexels.com/video-files/1918465/1918465-uhd_2560_1440_24fps.mp4",
-    source: "Calm River",
-    category: "motivational",
-    section: "both",
-  },
-  {
-    id: "48",
-    type: "video",
-    body: "https://videos.pexels.com/video-files/3194277/3194277-uhd_2560_1440_30fps.mp4",
-    source: "Clouds Timelapse",
-    category: "motivational",
-    section: "both",
-  },
-  {
-    id: "49",
-    type: "video",
-    body: "https://videos.pexels.com/video-files/856974/856974-hd_1920_1080_30fps.mp4",
-    source: "Waterfall",
-    category: "motivational",
-    section: "both",
-  },
-  {
-    id: "50",
-    type: "video",
-    body: "https://videos.pexels.com/video-files/2886110/2886110-hd_1920_1080_30fps.mp4",
-    source: "Night Sky Stars",
-    category: "motivational",
-    section: "both",
-  },
 ];
 
-// Interleave videos among quotes — insert a video every ~6 items
-function interleave(items: ContentItem[]): ContentItem[] {
-  const quotes = items.filter((i) => i.type === "quote");
-  const videos = items.filter((i) => i.type === "video");
-  const result: ContentItem[] = [];
-  let vi = 0;
-
-  // Start with a video
-  if (videos.length > 0) {
-    result.push(videos[vi++]);
-  }
-
-  for (let i = 0; i < quotes.length; i++) {
-    result.push(quotes[i]);
-    if ((i + 1) % 5 === 0 && vi < videos.length) {
-      result.push(videos[vi++]);
-    }
-  }
-  // Append remaining videos
-  while (vi < videos.length) {
-    result.push(videos[vi++]);
-  }
-  return result;
-}
-
-export const feedItems = interleave(
-  seedData.filter((item) => item.section === "feed" || item.section === "both")
+// Videos and quotes separated — videos always come first in the feed,
+// quotes get shuffled on the client side.
+const allFeed = seedData.filter(
+  (item) => item.section === "feed" || item.section === "both",
 );
 
+export const feedVideos = allFeed.filter((i) => i.type === "video");
+export const feedQuotes = allFeed.filter((i) => i.type === "quote");
+
 export const playlistItems = seedData.filter(
-  (item) => item.type === "video" && (item.section === "playlist" || item.section === "both")
+  (item) =>
+    item.type === "video" &&
+    (item.section === "playlist" || item.section === "both"),
 );
