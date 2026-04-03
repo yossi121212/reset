@@ -15,12 +15,29 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+/** Interleave videos evenly among quotes — both shuffled */
+function interleave() {
+  const videos = shuffle(feedVideos);
+  const quotes = shuffle(feedQuotes);
+  const result = [...quotes];
+
+  if (videos.length === 0) return result;
+
+  // Space videos evenly: e.g. 3 videos in 38 quotes → insert at positions ~10, ~20, ~30
+  const gap = Math.floor(quotes.length / (videos.length + 1));
+  for (let i = 0; i < videos.length; i++) {
+    const pos = gap * (i + 1) + i; // +i accounts for previously inserted videos
+    result.splice(pos, 0, videos[i]);
+  }
+  return result;
+}
+
 export default function FeedPage() {
   const [items, setItems] = useState([...feedVideos, ...feedQuotes]);
   const [globalMuted, setGlobalMuted] = useState(true);
 
   useEffect(() => {
-    setItems([...shuffle(feedVideos), ...shuffle(feedQuotes)]);
+    setItems(interleave());
   }, []);
 
   const handleMuteToggle = useCallback((muted: boolean) => {
