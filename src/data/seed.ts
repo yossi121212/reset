@@ -37,6 +37,14 @@ export const seedData: ContentItem[] = [
     category: "motivational",
     section: "both",
   },
+  {
+    id: "54",
+    type: "video",
+    body: "/videos/ice-skating.mp4",
+    source: "Ice Skating — la mia terapia",
+    category: "motivational",
+    section: "both",
+  },
 
   // ── Stoic Quotes ──────────────────────────────
   {
