@@ -3,25 +3,28 @@
 import { BottomNav } from "@/components/BottomNav";
 import { PlaylistPlayer } from "@/components/PlaylistPlayer";
 import { playlistItems } from "@/data/seed";
+import { useEffect, useState } from "react";
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export default function PlaylistPage() {
+  const [items, setItems] = useState(playlistItems);
+
+  useEffect(() => {
+    setItems(shuffle(playlistItems));
+  }, []);
+
   return (
-    <>
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-lg items-center justify-between px-6 py-4">
-          <h1 className="text-lg font-semibold tracking-tight">Playlist</h1>
-          <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">
-            {playlistItems.length} videos
-          </span>
-        </div>
-      </header>
-
-      <main className="pt-16 pb-20">
-        <PlaylistPlayer items={playlistItems} />
-      </main>
-
+    <div className="mx-auto max-w-md">
+      <PlaylistPlayer items={items} />
       <BottomNav />
-    </>
+    </div>
   );
 }

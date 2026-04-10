@@ -2,6 +2,7 @@
 
 import { ContentItem } from "@/data/seed";
 import { useMemo } from "react";
+import { ActionButtons } from "./ActionButtons";
 
 const categoryLabel: Record<string, string> = {
   stoic: "Stoic",
@@ -94,6 +95,11 @@ export function QuoteCard({ item }: { item: ContentItem }) {
           }}
         />
       ))}
+
+      {/* Action buttons — right side */}
+      <div className="absolute right-5 bottom-24 z-10">
+        <ActionButtons variant="light" />
+      </div>
 
       {/* Content — above the blobs */}
       <div className="relative z-10 flex flex-col items-center">

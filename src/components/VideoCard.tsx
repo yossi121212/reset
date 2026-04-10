@@ -2,6 +2,7 @@
 
 import { ContentItem } from "@/data/seed";
 import { useEffect, useRef, useState } from "react";
+import { ActionButtons } from "./ActionButtons";
 
 export function VideoCard({
   item,
@@ -77,7 +78,7 @@ export function VideoCard({
       <video
         ref={videoRef}
         src={item.body}
-        muted
+        muted={globalMuted}
         loop
         playsInline
         preload={priority ? "auto" : "metadata"}
@@ -99,10 +100,15 @@ export function VideoCard({
         </div>
       )}
 
+      {/* Action buttons — right side, above mute */}
+      <div className="absolute right-5 bottom-40 z-10" onClick={(e) => e.stopPropagation()}>
+        <ActionButtons variant="dark" />
+      </div>
+
       {/* Mute/Unmute button */}
       <button
         onClick={toggleMute}
-        className="absolute bottom-24 right-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-colors active:bg-white/30"
+        className="absolute bottom-24 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-colors active:bg-white/30"
         aria-label={globalMuted ? "Unmute" : "Mute"}
       >
         {globalMuted ? (

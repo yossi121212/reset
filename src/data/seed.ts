@@ -45,6 +45,14 @@ export const seedData: ContentItem[] = [
     category: "motivational",
     section: "both",
   },
+  {
+    id: "55",
+    type: "video",
+    body: "/videos/past-self-proud.mp4",
+    source: "Make sure your past self would be proud of who you're becoming",
+    category: "motivational",
+    section: "both",
+  },
 
   // ── Stoic Quotes ──────────────────────────────
   {
