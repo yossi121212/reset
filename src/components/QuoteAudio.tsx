@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const TRACKS = ["/audio/in-this-shirt.mp3", "/audio/interstellar.mp3"];
+const TRACKS = [
+  "/audio/in-this-shirt.mp3",
+  "/audio/interstellar.mp3",
+  "/audio/another-love.mp3",
+];
 const TARGET_VOLUME = 0.32;
 const FADE_MS = 900;
 
@@ -43,17 +47,45 @@ export function QuoteAudio({ active }: { active: boolean }) {
       }, 16);
     };
 
+    // On mobile, autoplay is blocked until the user has tapped. If the first
+    // play() rejects, wait for the next gesture anywhere on the page and retry —
+    // so music starts on the user's first tap, not only when they hit the icon.
+    let unlock: (() => void) | null = null;
+    const removeUnlock = () => {
+      if (!unlock) return;
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("touchstart", unlock);
+      unlock = null;
+    };
+
+    const tryPlay = () => {
+      const p = audio.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          if (unlock) return;
+          unlock = () => {
+            removeUnlock();
+            if (active && audio.paused) audio.play().catch(() => {});
+          };
+          document.addEventListener("pointerdown", unlock, { once: true });
+          document.addEventListener("touchstart", unlock, { once: true });
+        });
+      }
+    };
+
     if (active) {
       audio.volume = 0;
-      // Browsers may block autoplay without prior user interaction —
-      // the promise rejection is expected on a fresh page; ignore it.
-      audio.play().catch(() => {});
+      tryPlay();
       fadeTo(TARGET_VOLUME);
     } else {
+      removeUnlock();
       fadeTo(0, () => audio.pause());
     }
 
-    return clearFade;
+    return () => {
+      clearFade();
+      removeUnlock();
+    };
   }, [active]);
 
   return <audio ref={audioRef} src={track} loop preload="metadata" />;

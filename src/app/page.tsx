@@ -3,7 +3,7 @@
 import { FeedItem } from "@/components/FeedItem";
 import { BottomNav } from "@/components/BottomNav";
 import { feedVideos, feedQuotes } from "@/data/seed";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /** Fisher-Yates shuffle */
 function shuffle<T>(arr: T[]): T[] {
@@ -68,10 +68,30 @@ export default function FeedPage() {
   const [globalMuted, setGlobalMuted] = useState(true);
   const [musicMuted, setMusicMuted] = useState(false);
   const [lang, setLang] = useState<"en" | "he">("en");
+  const feedRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setItems(interleave());
   }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      const el = feedRef.current;
+      if (!el) return;
+      e.preventDefault();
+      const step = el.clientHeight;
+      const direction = e.key === "ArrowDown" ? 1 : -1;
+      const current = Math.round(el.scrollTop / step);
+      const next = Math.max(
+        0,
+        Math.min(items.length - 1, current + direction),
+      );
+      el.scrollTo({ top: next * step, behavior: "smooth" });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [items.length]);
 
   const handleMuteToggle = useCallback((muted: boolean) => {
     setGlobalMuted(muted);
@@ -100,7 +120,10 @@ export default function FeedPage() {
       </header>
 
       {/* Full-screen snap scroll feed */}
-      <main className="h-[100dvh] snap-y snap-mandatory overflow-y-scroll">
+      <main
+        ref={feedRef}
+        className="h-[100dvh] snap-y snap-mandatory overflow-y-scroll"
+      >
         {items.map((item, i) => (
           <div key={item.id} className="h-[100dvh] snap-start">
             <FeedItem

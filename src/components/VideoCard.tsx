@@ -158,49 +158,50 @@ export function VideoCard({
         </div>
       )}
 
-      {/* Action buttons — right side, above mute */}
-      <div className="absolute right-5 bottom-40 z-10" onClick={(e) => e.stopPropagation()}>
-        <ActionButtons variant="dark" />
-      </div>
-
-      {/* Mute/Unmute button */}
-      <button
-        onClick={toggleMute}
-        className="absolute bottom-24 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-colors active:bg-white/30"
-        aria-label={globalMuted ? "Unmute" : "Mute"}
+      {/* Right-side action stack — share, save, mute share one flex column */}
+      <div
+        className="absolute right-5 bottom-24 z-10 flex flex-col items-center gap-4"
+        onClick={(e) => e.stopPropagation()}
       >
-        {globalMuted ? (
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <line x1="23" y1="9" x2="17" y2="15" />
-            <line x1="17" y1="9" x2="23" y2="15" />
-          </svg>
-        ) : (
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-          </svg>
-        )}
-      </button>
+        <ActionButtons variant="dark" />
+        <button
+          onClick={toggleMute}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-colors active:bg-white/30"
+          aria-label={globalMuted ? "Unmute" : "Mute"}
+        >
+          {globalMuted ? (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <line x1="23" y1="9" x2="17" y2="15" />
+              <line x1="17" y1="9" x2="23" y2="15" />
+            </svg>
+          ) : (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            </svg>
+          )}
+        </button>
+      </div>
 
       <div className="absolute bottom-24 left-6 flex flex-col gap-1">
         <span className="text-sm font-medium text-white/90">{item.source}</span>
