@@ -4,6 +4,10 @@ import { ContentItem } from "@/data/seed";
 import { useEffect, useRef, useState } from "react";
 import { ActionButtons } from "./ActionButtons";
 
+// Music sits underneath the speech — quiet enough that the voice always wins.
+const MUSIC_TARGET_VOLUME = 0.18;
+const MUSIC_FADE_MS = 600;
+
 export function VideoCard({
   item,
   priority = false,
@@ -15,11 +19,15 @@ export function VideoCard({
   globalMuted?: boolean;
   onMuteToggle?: (muted: boolean) => void;
 }) {
+  const hasMusic = !!item.music;
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const musicRef = useRef<HTMLAudioElement | null>(null);
+  const fadeRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const [inView, setInView] = useState(false);
 
-  // Sync muted state from parent whenever globalMuted changes
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
@@ -37,10 +45,12 @@ export function VideoCard({
         if (entry.isIntersecting) {
           video.play().catch(() => {});
           setIsPaused(false);
+          setInView(true);
         } else {
           video.pause();
           video.currentTime = 0;
           setIsPaused(false);
+          setInView(false);
         }
       },
       { threshold: 0.6 },
@@ -49,6 +59,45 @@ export function VideoCard({
     observer.observe(container);
     return () => observer.disconnect();
   }, []);
+
+  // Background-music fade tied to viewport + mute state.
+  useEffect(() => {
+    if (!hasMusic) return;
+    const audio = musicRef.current;
+    if (!audio) return;
+
+    const clearFade = () => {
+      if (fadeRef.current) {
+        clearInterval(fadeRef.current);
+        fadeRef.current = null;
+      }
+    };
+
+    const fadeTo = (target: number, onDone?: () => void) => {
+      clearFade();
+      const start = audio.volume;
+      const t0 = performance.now();
+      fadeRef.current = setInterval(() => {
+        const t = Math.min((performance.now() - t0) / MUSIC_FADE_MS, 1);
+        audio.volume = start + (target - start) * t;
+        if (t === 1) {
+          clearFade();
+          onDone?.();
+        }
+      }, 16);
+    };
+
+    const shouldPlay = inView && !globalMuted;
+    if (shouldPlay) {
+      audio.volume = 0;
+      audio.play().catch(() => {});
+      fadeTo(MUSIC_TARGET_VOLUME);
+    } else {
+      fadeTo(0, () => audio.pause());
+    }
+
+    return clearFade;
+  }, [hasMusic, inView, globalMuted]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -84,6 +133,15 @@ export function VideoCard({
         preload={priority ? "auto" : "metadata"}
         className="h-full w-full object-cover"
       />
+
+      {hasMusic && (
+        <audio
+          ref={musicRef}
+          src={item.music}
+          loop
+          preload="metadata"
+        />
+      )}
 
       {/* Pause overlay */}
       {isPaused && (

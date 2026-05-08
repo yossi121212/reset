@@ -1,10 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Frank_Ruhl_Libre } from "next/font/google";
 import "./globals.css";
 
 const geist = Geist({
   variable: "--font-sans",
   subsets: ["latin"],
+});
+
+const hebrew = Frank_Ruhl_Libre({
+  variable: "--font-hebrew",
+  subsets: ["hebrew"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -32,7 +38,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${geist.variable} ${hebrew.variable} h-full antialiased`}
+    >
       <body className="min-h-full bg-white text-black font-sans">
         {children}
       </body>

@@ -131,6 +131,33 @@
   }
 }
 
+/* Ken Burns — four motion variants, picked per card via hash.
+ * Pan amounts stay within (scale - 1) × 100% × 0.6 to avoid edge exposure. */
+@keyframes kenBurns0 {
+  /* slow zoom-in */
+  0%   { transform: scale(1.05); }
+  100% { transform: scale(1.25); }
+}
+@keyframes kenBurns1 {
+  /* slow zoom-out — ends wider than it starts */
+  0%   { transform: scale(1.28); }
+  100% { transform: scale(1.08); }
+}
+@keyframes kenBurns2 {
+  /* zoom-in + diagonal drift down-right */
+  0%   { transform: scale(1.1)  translate(-2.5%, -1.5%); }
+  100% { transform: scale(1.22) translate(2.5%, 1.5%);  }
+}
+@keyframes kenBurns3 {
+  /* zoom-out + diagonal drift up-left */
+  0%   { transform: scale(1.2)  translate(2.5%, -1.5%); }
+  100% { transform: scale(1.1)  translate(-2.5%, 1.5%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ken-burns] { animation: none !important; transform: none !important; }
+}
+
 /* Mesh gradient blob animations — big dramatic drift paths */
 @keyframes meshFloat0 {
   0%   { transform: translate(-15vw, -10vh) scale(1); }

@@ -9,11 +9,17 @@ export function FeedItem({
   priority = false,
   globalMuted = true,
   onMuteToggle,
+  musicMuted = false,
+  onMusicMuteToggle,
+  lang = "en",
 }: {
   item: ContentItem;
   priority?: boolean;
   globalMuted?: boolean;
   onMuteToggle?: (muted: boolean) => void;
+  musicMuted?: boolean;
+  onMusicMuteToggle?: (muted: boolean) => void;
+  lang?: "en" | "he";
 }) {
   if (item.type === "video") {
     return (
@@ -25,5 +31,12 @@ export function FeedItem({
       />
     );
   }
-  return <QuoteCard item={item} />;
+  return (
+    <QuoteCard
+      item={item}
+      musicMuted={musicMuted}
+      onMusicMuteToggle={onMusicMuteToggle}
+      lang={lang}
+    />
+  );
 }

@@ -15,26 +15,59 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** Interleave videos evenly among quotes — both shuffled */
+/**
+ * Front-loaded interleave: first few slots alternate video-quote so a video
+ * lands at position 0, then remaining videos spread evenly through the tail.
+ * Result starts video-heavy and tapers to quote-heavy.
+ */
 function interleave() {
   const videos = shuffle(feedVideos);
   const quotes = shuffle(feedQuotes);
-  const result = [...quotes];
 
-  if (videos.length === 0) return result;
+  if (videos.length === 0) return quotes;
+  if (quotes.length === 0) return videos;
 
-  // Space videos evenly: e.g. 3 videos in 38 quotes → insert at positions ~10, ~20, ~30
-  const gap = Math.floor(quotes.length / (videos.length + 1));
-  for (let i = 0; i < videos.length; i++) {
-    const pos = gap * (i + 1) + i; // +i accounts for previously inserted videos
-    result.splice(pos, 0, videos[i]);
+  const result: typeof quotes = [];
+  // How many videos to pack into the front block. Bump this to make the
+  // top of the feed even more video-heavy.
+  const frontBlock = Math.min(3, videos.length);
+
+  let v = 0;
+  let q = 0;
+
+  // Front block: V Q V Q V Q ...
+  for (let i = 0; i < frontBlock; i++) {
+    result.push(videos[v++]);
+    if (q < quotes.length) result.push(quotes[q++]);
   }
+
+  // Remaining: spread the rest of the videos evenly through the rest of the quotes.
+  const remainingVideos = videos.slice(v);
+  const remainingQuotes = quotes.slice(q);
+  const gap = Math.max(
+    1,
+    Math.floor(remainingQuotes.length / (remainingVideos.length + 1)),
+  );
+
+  let rq = 0;
+  for (const video of remainingVideos) {
+    for (let g = 0; g < gap && rq < remainingQuotes.length; g++) {
+      result.push(remainingQuotes[rq++]);
+    }
+    result.push(video);
+  }
+  while (rq < remainingQuotes.length) {
+    result.push(remainingQuotes[rq++]);
+  }
+
   return result;
 }
 
 export default function FeedPage() {
   const [items, setItems] = useState([...feedVideos, ...feedQuotes]);
   const [globalMuted, setGlobalMuted] = useState(true);
+  const [musicMuted, setMusicMuted] = useState(false);
+  const [lang, setLang] = useState<"en" | "he">("en");
 
   useEffect(() => {
     setItems(interleave());
@@ -44,17 +77,25 @@ export default function FeedPage() {
     setGlobalMuted(muted);
   }, []);
 
+  const handleMusicMuteToggle = useCallback((muted: boolean) => {
+    setMusicMuted(muted);
+  }, []);
+
   return (
     <div className="mx-auto max-w-md">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto flex max-w-md items-center justify-between px-6 pt-[env(safe-area-inset-top,0px)] py-4">
-          <h1 className="text-lg font-semibold tracking-tight text-black drop-shadow-sm">
+          <h1 className="text-lg font-semibold tracking-tight text-white drop-shadow-md">
             Reset
           </h1>
-          <span className="text-[10px] tracking-[0.2em] uppercase text-black/40">
-            clean content
-          </span>
+          <button
+            onClick={() => setLang((l) => (l === "en" ? "he" : "en"))}
+            className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-medium tracking-widest uppercase text-white backdrop-blur-md transition-colors active:bg-white/30"
+            aria-label="Toggle language"
+          >
+            {lang === "en" ? "עב" : "EN"}
+          </button>
         </div>
       </header>
 
@@ -67,6 +108,9 @@ export default function FeedPage() {
               priority={i === 0}
               globalMuted={globalMuted}
               onMuteToggle={handleMuteToggle}
+              musicMuted={musicMuted}
+              onMusicMuteToggle={handleMusicMuteToggle}
+              lang={lang}
             />
           </div>
         ))}

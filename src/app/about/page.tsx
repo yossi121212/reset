@@ -1,9 +1,9 @@
-import Link from "next/link";
+import { BottomNav } from "@/components/BottomNav";
 
 export default function AboutPage() {
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-white px-6 py-20">
-      <div className="mx-auto flex max-w-md flex-col gap-12">
+    <div className="flex min-h-[100dvh] flex-col bg-white">
+      <div className="relative z-10 mx-auto flex max-w-md flex-col gap-12 px-6 py-20">
         {/* Title */}
         <div>
           <h1 className="text-4xl font-semibold tracking-tight">Reset</h1>
@@ -62,14 +62,19 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Back */}
-        <Link
-          href="/"
-          className="mt-4 text-sm text-black/40 transition-colors hover:text-black"
-        >
-          ← Back to feed
-        </Link>
       </div>
+
+      {/* Mountain image at bottom with smooth white fade on top */}
+      <div className="relative w-full">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-40 bg-gradient-to-b from-white to-transparent" />
+        <img
+          src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1600&q=80"
+          alt="Sunlit mountain peaks"
+          className="block h-[70vh] w-full object-cover object-center"
+        />
+      </div>
+
+      <BottomNav />
     </div>
   );
 }
