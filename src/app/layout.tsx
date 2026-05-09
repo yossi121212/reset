@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Frank_Ruhl_Libre } from "next/font/google";
+import { Geist, Assistant } from "next/font/google";
 import "./globals.css";
 
 const geist = Geist({
@@ -7,10 +7,10 @@ const geist = Geist({
   subsets: ["latin"],
 });
 
-const hebrew = Frank_Ruhl_Libre({
+const hebrew = Assistant({
   variable: "--font-hebrew",
   subsets: ["hebrew"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {

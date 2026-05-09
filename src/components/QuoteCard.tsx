@@ -4,6 +4,12 @@ import { ContentItem } from "@/data/seed";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionButtons } from "./ActionButtons";
 import { QuoteAudio } from "./QuoteAudio";
+import { QuoteReflectionSheet } from "./QuoteReflectionSheet";
+
+const learnMoreLabel = {
+  en: "Learn more",
+  he: "ללמוד עוד",
+};
 
 const categoryLabel: Record<string, string> = {
   stoic: "Stoic",
@@ -166,6 +172,7 @@ export function QuoteCard({
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [active, setActive] = useState(false);
+  const [reflectOpen, setReflectOpen] = useState(false);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -296,9 +303,43 @@ export function QuoteCard({
             {categoryLabel[item.category]}
           </span>
         </div>
+
+        {/* Learn more — opens the reflection bottom-sheet */}
+        <button
+          type="button"
+          onClick={() => setReflectOpen(true)}
+          className="mt-6 flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-medium text-white/95 backdrop-blur-md transition-colors active:bg-white/20"
+          style={
+            showHebrew
+              ? { fontFamily: "var(--font-hebrew), serif" }
+              : undefined
+          }
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9L12 3z" />
+          </svg>
+          {showHebrew ? learnMoreLabel.he : learnMoreLabel.en}
+        </button>
       </div>
 
       <QuoteAudio active={active && !musicMuted} />
+
+      <QuoteReflectionSheet
+        item={item}
+        open={reflectOpen}
+        onOpenChange={setReflectOpen}
+        lang={lang}
+      />
     </div>
   );
 }
