@@ -2,6 +2,25 @@ export type ContentType = "quote" | "video";
 export type Category = "stoic" | "psalm" | "proverb" | "philosophical" | "motivational";
 export type Section = "feed" | "playlist" | "both";
 
+export type Topic =
+  | "nature"
+  | "sports"
+  | "religion"
+  | "discipline"
+  | "love"
+  | "career"
+  | "family"
+  | "space";
+
+export type Mood =
+  | "uplifting"
+  | "inspiring"
+  | "calm"
+  | "focus"
+  | "hype"
+  | "reflective"
+  | "grateful";
+
 export interface ContentItem {
   id: string;
   type: ContentType;
@@ -14,10 +33,44 @@ export interface ContentItem {
   source_he?: string;
   /** Optional background-music track (path under /public). Videos with this play the original audio muted and this track underneath. */
   music?: string;
+  /** Mock-AI metadata: subject tags. */
+  topics?: Topic[];
+  /** Mock-AI metadata: emotional tone tags. */
+  moods?: Mood[];
 }
 
 export const seedData: ContentItem[] = [
   // ── Local Videos ───────────────────────────────
+  {
+    id: "66",
+    type: "video",
+    body: "/videos/matthias-steiner.mp4",
+    source: "Matthias Steiner — gold-medal masterclass of resilience",
+    category: "motivational",
+    section: "both",
+    topics: ["sports", "family"],
+    moods: ["inspiring", "hype"],
+  },
+  {
+    id: "65",
+    type: "video",
+    body: "/videos/may-we-meet-again.mp4",
+    source: "May we meet again",
+    category: "motivational",
+    section: "both",
+    topics: ["love", "family"],
+    moods: ["reflective", "calm", "grateful"],
+  },
+  {
+    id: "64",
+    type: "video",
+    body: "/videos/victor-glover-earth.mp4",
+    source: "Astronaut Victor Glover Jr. — our spaceship called Earth",
+    category: "motivational",
+    section: "both",
+    topics: ["space", "nature"],
+    moods: ["reflective", "grateful", "calm"],
+  },
   {
     id: "63",
     type: "video",
@@ -25,6 +78,8 @@ export const seedData: ContentItem[] = [
     source: "Kobe Bryant — relationship with God",
     category: "motivational",
     section: "both",
+    topics: ["sports", "religion"],
+    moods: ["inspiring", "reflective"],
   },
   {
     id: "62",
@@ -34,6 +89,8 @@ export const seedData: ContentItem[] = [
     category: "motivational",
     section: "both",
     music: "/audio/in-this-shirt.mp3",
+    topics: ["love"],
+    moods: ["reflective", "calm"],
   },
   {
     id: "56",
@@ -42,6 +99,8 @@ export const seedData: ContentItem[] = [
     source: "Steve Carell — fully committed to the role",
     category: "motivational",
     section: "both",
+    topics: ["career", "discipline", "religion"],
+    moods: ["inspiring", "uplifting", "focus"],
   },
   {
     id: "57",
@@ -50,6 +109,8 @@ export const seedData: ContentItem[] = [
     source: "Denzel Washington — humble beginnings to greatness",
     category: "motivational",
     section: "both",
+    topics: ["career", "discipline"],
+    moods: ["inspiring", "hype", "uplifting"],
   },
   {
     id: "51",
@@ -58,6 +119,8 @@ export const seedData: ContentItem[] = [
     source: "Give yourself fully to the vision",
     category: "motivational",
     section: "both",
+    topics: ["career", "discipline"],
+    moods: ["focus", "inspiring", "hype"],
   },
   {
     id: "52",
@@ -66,6 +129,8 @@ export const seedData: ContentItem[] = [
     source: "Sheryl Lee Ralph — You better love what you see",
     category: "motivational",
     section: "both",
+    topics: ["love", "career"],
+    moods: ["uplifting", "inspiring", "grateful"],
   },
   {
     id: "53",
@@ -74,6 +139,8 @@ export const seedData: ContentItem[] = [
     source: "Roger Federer — 20 Grand Slam legend",
     category: "motivational",
     section: "both",
+    topics: ["sports", "discipline"],
+    moods: ["inspiring", "hype", "uplifting"],
   },
   {
     id: "54",
@@ -82,6 +149,8 @@ export const seedData: ContentItem[] = [
     source: "Ice Skating — la mia terapia",
     category: "motivational",
     section: "both",
+    topics: ["sports", "nature"],
+    moods: ["calm", "reflective", "focus"],
   },
   {
     id: "55",
@@ -90,6 +159,8 @@ export const seedData: ContentItem[] = [
     source: "Make sure your past self would be proud of who you're becoming",
     category: "motivational",
     section: "both",
+    topics: ["discipline", "career"],
+    moods: ["reflective", "inspiring", "focus"],
   },
 
   // ── Stoic Quotes ──────────────────────────────
@@ -652,9 +723,3 @@ const allFeed = seedData.filter(
 
 export const feedVideos = allFeed.filter((i) => i.type === "video");
 export const feedQuotes = allFeed.filter((i) => i.type === "quote");
-
-export const playlistItems = seedData.filter(
-  (item) =>
-    item.type === "video" &&
-    (item.section === "playlist" || item.section === "both"),
-);

@@ -2,8 +2,10 @@
 
 import { FeedItem } from "@/components/FeedItem";
 import { BottomNav } from "@/components/BottomNav";
-import { feedVideos, feedQuotes } from "@/data/seed";
+import { feedVideos } from "@/data/seed";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+const AI_STORAGE_KEY = "reset:ai:curated";
 
 /** Fisher-Yates shuffle */
 function shuffle<T>(arr: T[]): T[] {
@@ -15,64 +17,95 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/**
- * Front-loaded interleave: first few slots alternate video-quote so a video
- * lands at position 0, then remaining videos spread evenly through the tail.
- * Result starts video-heavy and tapers to quote-heavy.
- */
-function interleave() {
-  const videos = shuffle(feedVideos);
-  const quotes = shuffle(feedQuotes);
+interface CuratedPayload {
+  prompt: string;
+  ids: string[];
+  detected: { topics: string[]; moods: string[] };
+}
 
-  if (videos.length === 0) return quotes;
-  if (quotes.length === 0) return videos;
+// Module-level cache so a payload survives React StrictMode's
+// double-mount in dev. TTL is intentionally short so a real page
+// refresh doesn't keep re-applying a stale curation.
+let lastAppliedPayload: CuratedPayload | null = null;
+let lastAppliedAt = 0;
+const STRICT_MODE_REMOUNT_WINDOW_MS = 5000;
 
-  const result: typeof quotes = [];
-  // How many videos to pack into the front block. Bump this to make the
-  // top of the feed even more video-heavy.
-  const frontBlock = Math.min(3, videos.length);
-
-  let v = 0;
-  let q = 0;
-
-  // Front block: V Q V Q V Q ...
-  for (let i = 0; i < frontBlock; i++) {
-    result.push(videos[v++]);
-    if (q < quotes.length) result.push(quotes[q++]);
+function consumeCurated(): CuratedPayload | null {
+  if (typeof window === "undefined") return null;
+  let raw: string | null = null;
+  try {
+    raw = sessionStorage.getItem(AI_STORAGE_KEY);
+  } catch {
+    return null;
   }
-
-  // Remaining: spread the rest of the videos evenly through the rest of the quotes.
-  const remainingVideos = videos.slice(v);
-  const remainingQuotes = quotes.slice(q);
-  const gap = Math.max(
-    1,
-    Math.floor(remainingQuotes.length / (remainingVideos.length + 1)),
-  );
-
-  let rq = 0;
-  for (const video of remainingVideos) {
-    for (let g = 0; g < gap && rq < remainingQuotes.length; g++) {
-      result.push(remainingQuotes[rq++]);
+  if (raw) {
+    try {
+      lastAppliedPayload = JSON.parse(raw) as CuratedPayload;
+      lastAppliedAt = Date.now();
+      sessionStorage.removeItem(AI_STORAGE_KEY);
+      return lastAppliedPayload;
+    } catch {
+      return null;
     }
-    result.push(video);
   }
-  while (rq < remainingQuotes.length) {
-    result.push(remainingQuotes[rq++]);
+  // Storage already cleared. Only return cached payload if we're still
+  // inside the StrictMode double-mount window — otherwise treat this
+  // as a fresh visit and return null so the feed shuffles normally.
+  if (Date.now() - lastAppliedAt < STRICT_MODE_REMOUNT_WINDOW_MS) {
+    return lastAppliedPayload;
   }
-
-  return result;
+  lastAppliedPayload = null;
+  return null;
 }
 
 export default function FeedPage() {
-  const [items, setItems] = useState([...feedVideos, ...feedQuotes]);
+  const [items, setItems] = useState(feedVideos);
   const [globalMuted, setGlobalMuted] = useState(true);
   const [musicMuted, setMusicMuted] = useState(false);
-  const [lang, setLang] = useState<"en" | "he">("en");
+  const lang: "en" | "he" = "en";
+  const [curated, setCurated] = useState<CuratedPayload | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
   const feedRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    setItems(interleave());
+    // Module-level cache survives StrictMode double-mount.
+    const payload = consumeCurated();
+
+    if (payload && payload.ids.length > 0) {
+      // Put matched videos first (in the order returned by the matcher),
+      // then append the rest of the feed shuffled.
+      const matchedSet = new Set(payload.ids);
+      const byId = new Map(feedVideos.map((v) => [v.id, v]));
+      const ordered = [
+        ...payload.ids.map((id) => byId.get(id)).filter((v): v is NonNullable<typeof v> => !!v),
+        ...shuffle(feedVideos.filter((v) => !matchedSet.has(v.id))),
+      ];
+      setItems(ordered);
+      setCurated(payload);
+      // Curation is a deliberate user action — start the feed with sound on.
+      setGlobalMuted(false);
+      setToastVisible(true);
+      return;
+    }
+
+    setItems(shuffle(feedVideos));
   }, []);
+
+  // Hide the AI toast once the user scrolls past the matched/sorted zone.
+  useEffect(() => {
+    if (!curated) return;
+    const el = feedRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const step = el.clientHeight;
+      if (step === 0) return;
+      const idx = Math.round(el.scrollTop / step);
+      const stillInMatched = idx < curated.ids.length;
+      setToastVisible(stillInMatched);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [curated]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -105,19 +138,38 @@ export default function FeedPage() {
     <div className="mx-auto max-w-md">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="mx-auto flex max-w-md items-center justify-between px-6 pt-[env(safe-area-inset-top,0px)] py-4">
+        <div className="mx-auto flex max-w-md items-center px-6 pt-[env(safe-area-inset-top,0px)] py-4">
           <h1 className="text-lg font-semibold tracking-tight text-white drop-shadow-md">
             Reset
           </h1>
-          <button
-            onClick={() => setLang((l) => (l === "en" ? "he" : "en"))}
-            className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-medium tracking-widest uppercase text-white backdrop-blur-md transition-colors active:bg-white/30"
-            aria-label="Toggle language"
-          >
-            {lang === "en" ? "עב" : "EN"}
-          </button>
         </div>
       </header>
+
+      {/* AI-curated toast — horizontally centered, near the top */}
+      {curated && (
+        <div
+          className="pointer-events-none fixed left-1/2 z-[60]"
+          style={{
+            top: "max(env(safe-area-inset-top, 0px), 1.25rem)",
+            opacity: toastVisible ? 1 : 0,
+            transform: `translate(-50%, ${toastVisible ? "0" : "-1rem"})`,
+            transition: "opacity 500ms ease, transform 500ms ease",
+          }}
+        >
+          <div className="ai-shimmer">
+            <div className="ai-shimmer-inner flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white shadow-lg">
+              <SparkleIcon />
+              <span>
+                Your feed is ready
+                {curated.detected &&
+                (curated.detected.topics.length > 0 || curated.detected.moods.length > 0)
+                  ? ` · ${[...curated.detected.topics, ...curated.detected.moods].join(" · ")}`
+                  : ""}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Full-screen snap scroll feed */}
       <main
@@ -141,5 +193,19 @@ export default function FeedPage() {
 
       <BottomNav />
     </div>
+  );
+}
+
+function SparkleIcon() {
+  return (
+    <svg
+      width={12}
+      height={12}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="text-white"
+    >
+      <path d="M12 3l1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3z" />
+    </svg>
   );
 }
