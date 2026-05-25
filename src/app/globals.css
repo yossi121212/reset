@@ -214,6 +214,33 @@
   backdrop-filter: blur(8px);
 }
 
+/* ─── Magical AI Orb animations ───────────────────────────────────────────── */
+
+/* Gentle vertical float */
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+/* Continuous spin — used on the conic-gradient ring */
+@keyframes orbSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Glow haze breathes in/out */
+@keyframes orbGlowPulse {
+  0%, 100% { opacity: 0.7;  transform: scale(1);    }
+  50%      { opacity: 1;    transform: scale(1.12); }
+}
+
+/* Ripple rings — scale up and fade out */
+@keyframes orbPulseRing {
+  0%   { transform: scale(0.88); opacity: 0.75; }
+  70%  { opacity: 0.1; }
+  100% { transform: scale(1.38); opacity: 0; }
+}
+
 /* Hide scrollbar for cleaner look */
 body::-webkit-scrollbar,
 main::-webkit-scrollbar,
